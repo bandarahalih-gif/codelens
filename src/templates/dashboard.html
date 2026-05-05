@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>📊 Dashboard</h1>
+    <p class="subtitle">Review history and token usage analytics</p>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-value">{{ reviews|length }}</div>
+        <div class="stat-label">Total Reviews</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ total_reviews_week }}</div>
+        <div class="stat-label">This Week</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ total_tokens_week|fmt_tokens }}</div>
+        <div class="stat-label">Tokens (7d)</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ reviews|selectattr('critical_count')|map(attribute='critical_count')|sum }}</div>
+        <div class="stat-label">Critical Findings</div>
+    </div>
+</div>
+
+<div class="card">
+    <h3>📈 Token Usage (Last 7 Days)</h3>
+    <canvas id="token-chart" height="200"></canvas>
+</div>
+
+<div class="card">
+    <h3>📋 Recent Reviews</h3>
+    {% if reviews %}
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>File</th>
+                <th>Language</th>
+                <th>Status</th>
+                <th>Findings</th>
+                <th>Tokens</th>
+                <th>Time</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in reviews %}
+            <tr class="clickable" onclick="location.href='/review/{{ r.id }}'">
+                <td>#{{ r.id }}</td>
+                <td><code>{{ r.filename }}</code></td>
+                <td><span class="badge badge-lang">{{ r.language }}</span></td>
+                <td>
+                    {% if r.status == 'complete' %}<span class="badge badge-success">✓ Complete</span>
+                    {% elif r.status == 'analyzing' %}<span class="badge badge-warning">⏳ Analyzing</span>
+                    {% elif r.status == 'failed' %}<span class="badge badge-error">✗ Failed</span>
+                    {% else %}<span class="badge">{{ r.status }}</span>{% endif %}
+                </td>
+                <td>
+                    {% if r.critical_count %}<span class="severity-dot critical">{{ r.critical_count }}C</span>{% endif %}
+                    {% if r.high_count %}<span class="severity-dot high">{{ r.high_count }}H</span>{% endif %}
+                    {% if r.medium_count %}<span class="severity-dot medium">{{ r.medium_count }}M</span>{% endif %}
+                    {% if r.low_count %}<span class="severity-dot low">{{ r.low_count }}L</span>{% endif %}
+                </td>
+                <td>{{ r.tokens_used|fmt_tokens }}</td>
+                <td>{{ r.created_at|timeago }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+        <p>📭 No reviews yet. <a href="/">Submit your first code review!</a></p>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+const tokenData = {{ token_history|map(attribute='total_tokens')|list|tojson }};
+const tokenLabels = {{ token_history|map(attribute='date')|map('string')|list|tojson }};
+if (document.getElementById('token-chart')) {
+    new Chart(document.getElementById('token-chart'), {
+        type: 'bar',
+        data: {
+            labels: tokenLabels,
+            datasets: [{label: 'Tokens Used', data: tokenData, backgroundColor: '#6366f1', borderRadius: 6}]
+        },
+        options: {responsive: true, plugins: {legend: {display: false}}, scales: {y: {beginAtZero: true, grid: {color: '#1e293b'}}, x: {grid: {display: false}}}}
+    });
+}
+</script>
+{% endblock %}

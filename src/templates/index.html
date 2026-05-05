@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}New Review{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>🔍 New Code Review</h1>
+    <p class="subtitle">Upload a file or paste code for AI-powered analysis</p>
+</div>
+
+{% if error %}
+<div class="alert alert-error">⚠️ {{ error }}</div>
+{% endif %}
+
+<div class="card upload-card">
+    <form action="/upload" method="POST" enctype="multipart/form-data" id="review-form">
+        <div class="form-tabs">
+            <button type="button" class="tab active" data-tab="paste">📋 Paste Code</button>
+            <button type="button" class="tab" data-tab="upload">📁 Upload File</button>
+        </div>
+
+        <div class="tab-content active" id="tab-paste">
+            <div class="form-group">
+                <label for="filename">Filename</label>
+                <input type="text" id="filename" name="filename" placeholder="example.py" value="pasted_code.py">
+            </div>
+            <div class="form-group">
+                <label for="code">Source Code</label>
+                <textarea id="code" name="code" rows="18" placeholder="Paste your code here..." spellcheck="false"></textarea>
+            </div>
+        </div>
+
+        <div class="tab-content" id="tab-upload">
+            <div class="upload-zone" id="drop-zone">
+                <div class="upload-icon">📂</div>
+                <p>Drag & drop a file here, or <label for="file-input" class="upload-link">browse</label></p>
+                <p class="upload-hint">Supports: .py, .js, .ts, .go, .rs, .java, .cpp, .rb, .php (max 512KB)</p>
+                <input type="file" id="file-input" name="file" accept=".py,.js,.ts,.go,.rs,.java,.cpp,.c,.rb,.php" hidden>
+            </div>
+            <div id="file-info" class="file-info" style="display:none"></div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-lg" id="analyze-btn">
+            🔍 Analyze Code
+        </button>
+    </form>
+</div>
+
+<div class="card info-card">
+    <h3>🔬 What CodeLens Checks</h3>
+    <div class="feature-grid">
+        <div class="feature">
+            <span class="feature-icon">🐛</span>
+            <h4>Bugs & Logic</h4>
+            <p>Off-by-one, null dereference, race conditions, unhandled exceptions</p>
+        </div>
+        <div class="feature">
+            <span class="feature-icon">🛡️</span>
+            <h4>Security</h4>
+            <p>SQL injection, XSS, path traversal, hardcoded secrets (OWASP Top 10)</p>
+        </div>
+        <div class="feature">
+            <span class="feature-icon">🎨</span>
+            <h4>Code Style</h4>
+            <p>Naming conventions, dead code, complexity, missing docstrings</p>
+        </div>
+        <div class="feature">
+            <span class="feature-icon">⚡</span>
+            <h4>Performance</h4>
+            <p>N+1 queries, O(n²) loops, missing caches, unnecessary allocations</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
