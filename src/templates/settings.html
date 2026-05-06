@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Settings{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>⚙️ Settings</h1>
+    <p class="subtitle">Configure MiMo API connection and analysis parameters</p>
+</div>
+
+<div class="card">
+    <h3>🔑 API Configuration</h3>
+    <div class="settings-grid">
+        <div class="setting-item">
+            <label>API Key</label>
+            <div class="setting-value">
+                {% if api_key_set %}
+                <span class="badge badge-success">✓ Configured</span>
+                {% else %}
+                <span class="badge badge-error">✗ Not set</span>
+                <p class="setting-hint">Set <code>MIMO_API_KEY</code> in your <code>.env</code> file</p>
+                {% endif %}
+            </div>
+        </div>
+        <div class="setting-item">
+            <label>Base URL</label>
+            <div class="setting-value"><code>{{ base_url }}</code></div>
+        </div>
+        <div class="setting-item">
+            <label>Model</label>
+            <div class="setting-value"><code>{{ model }}</code></div>
+        </div>
+        <div class="setting-item">
+            <label>Daily Token Budget</label>
+            <div class="setting-value">{{ "{:,}".format(daily_budget) }} tokens</div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h3>📄 Environment Variables</h3>
+    <table class="data-table">
+        <thead><tr><th>Variable</th><th>Description</th><th>Default</th></tr></thead>
+        <tbody>
+            <tr><td><code>MIMO_API_KEY</code></td><td>Your MiMo API key</td><td>—</td></tr>
+            <tr><td><code>MIMO_BASE_URL</code></td><td>MiMo API endpoint</td><td>https://api.mimo.xiaomi.com/v1</td></tr>
+            <tr><td><code>MIMO_MODEL</code></td><td>Model identifier</td><td>MiMo-v2.5</td></tr>
+            <tr><td><code>DATABASE_URL</code></td><td>Database connection string</td><td>sqlite:///codelens.db</td></tr>
+            <tr><td><code>DAILY_TOKEN_BUDGET</code></td><td>Max tokens per day</td><td>5,000,000</td></tr>
+            <tr><td><code>REVIEW_TOKEN_LIMIT</code></td><td>Max tokens per review</td><td>50,000</td></tr>
+            <tr><td><code>SECRET_KEY</code></td><td>Flask secret key</td><td>—</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="card">
+    <h3>🔌 CI/CD Integration</h3>
+    <p>Add CodeLens to your CI pipeline to automatically review code on every push:</p>
+    <pre><code># .github/workflows/review.yml
+name: Code Review
+on: [push, pull_request]
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run CodeLens
+        run: |
+          curl -X POST ${{ secrets.CODELENS_URL }}/api/v1/review \
+            -F "file=@src/main.py" \
+            -H "Authorization: Bearer ${{ secrets.CODELENS_API_KEY }}"</code></pre>
+</div>
+{% endblock %}

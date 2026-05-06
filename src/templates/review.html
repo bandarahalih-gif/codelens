@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Review #{{ review.id }}{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div class="breadcrumb"><a href="/dashboard">← Dashboard</a> / Review #{{ review.id }}</div>
+    <h1>📋 {{ review.filename }}</h1>
+    <div class="review-meta">
+        <span class="badge badge-lang">{{ review.language }}</span>
+        <span class="badge {% if review.status == 'complete' %}badge-success{% elif review.status == 'failed' %}badge-error{% else %}badge-warning{% endif %}">{{ review.status }}</span>
+        <span class="meta-item">⏱️ {{ review.analysis_time_ms }}ms</span>
+        <span class="meta-item">🔤 {{ review.tokens_used|fmt_tokens }} tokens</span>
+        <span class="meta-item">📅 {{ review.created_at|timeago }}</span>
+    </div>
+</div>
+
+<div class="stats-grid stats-grid-4">
+    <div class="stat-card critical">
+        <div class="stat-value">{{ review.critical_count }}</div>
+        <div class="stat-label">🔴 Critical</div>
+    </div>
+    <div class="stat-card high">
+        <div class="stat-value">{{ review.high_count }}</div>
+        <div class="stat-label">🟠 High</div>
+    </div>
+    <div class="stat-card medium">
+        <div class="stat-value">{{ review.medium_count }}</div>
+        <div class="stat-label">🟡 Medium</div>
+    </div>
+    <div class="stat-card low">
+        <div class="stat-value">{{ review.low_count }}</div>
+        <div class="stat-label">🟢 Low</div>
+    </div>
+</div>
+
+{% if findings %}
+<div class="card">
+    <h3>🔎 Findings ({{ findings|length }})</h3>
+    {% for f in findings %}
+    <div class="finding severity-{{ f.severity }}">
+        <div class="finding-header">
+            <span class="severity-badge">{{ f.severity|upper }}</span>
+            <span class="category-badge">{{ f.category }}</span>
+            {% if f.cwe_id %}<span class="cwe-badge">{{ f.cwe_id }}</span>{% endif %}
+            {% if f.line_start %}<span class="line-ref">L{{ f.line_start }}{% if f.line_end %}-{{ f.line_end }}{% endif %}</span>{% endif %}
+            <h4>{{ f.title }}</h4>
+        </div>
+        <p class="finding-desc">{{ f.description }}</p>
+        {% if f.suggestion %}
+        <div class="finding-suggestion">
+            <strong>💡 Suggestion:</strong> {{ f.suggestion }}
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="card">
+    <div class="empty-state">
+        <p>✅ No issues found! Your code looks clean.</p>
+    </div>
+</div>
+{% endif %}
+
+<div class="card">
+    <h3>📡 API Access</h3>
+    <pre><code>curl -X POST http://localhost:5000/api/v1/review \
+  -H "Content-Type: application/json" \
+  -d '{"code": "...", "filename": "{{ review.filename }}"}'</code></pre>
+</div>
+{% endblock %}
