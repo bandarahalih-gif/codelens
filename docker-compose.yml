@@ -1,0 +1,17 @@
+version: "3.9"
+
+services:
+  codelens:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      - MIMO_API_KEY=${MIMO_API_KEY}
+      - MIMO_BASE_URL=${MIMO_BASE_URL:-https://api.mimo.xiaomi.com/v1}
+      - DATABASE_URL=sqlite:///data/codelens.db
+      - SECRET_KEY=${SECRET_KEY:-dev-secret-key}
+    volumes:
+      - codelens-data:/app/data
+
+volumes:
+  codelens-data:
